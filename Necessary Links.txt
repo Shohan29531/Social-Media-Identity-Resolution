@@ -1,0 +1,4 @@
+https://en.wikipedia.org/wiki/Okapi_BM25
+
+
+https://en.wikipedia.org/wiki/Probabilistic_relevance_model

@@ -1,0 +1,254 @@
+             Dictionary Words with frequency:
+bro-->1
+cat-->2
+co-->2
+com-->1
+d-->3
+dir-->1
+dog-->3
+filename-->1
+foo-->1
+gr-->6
+hello-->1
+jumped-->1
+kino-->1
+lazy-->2
+mouse-->2
+over-->1
+p-->3
+pencil-->1
+quick-->1
+said-->1
+t-->2
+test-->1
+thank-->1
+thanks-->1
+u-->2
+vixen-->1
+world-->1
+             All Capital Words with frequency:
+OVER--->1
+LAZY--->1
+P--->1
+D--->3
+
+
+             Alphanumeric Words with frequency:
+t56he--->1
+J85umped--->1
+guy85s--->1
+var1--->1
+
+
+             Numeric Words with frequency:
+
+
+             Word Extensions with frequency:
+brown_fox--->1
+heyyyy--->1
+hii--->1
+http--->9
+www--->8
+foufos--->8
+https--->1
+werer--->1
+jpg--->1
+
+
+             Special Characters with frequency:
+~--->0
+`--->0
+!--->6
+@--->2
+#--->4
+$--->0
+%--->0
+^--->0
+&--->0
+*--->0
+(--->2
+)--->2
+---->1
+_--->4
++--->0
+=--->1
+{--->0
+}--->0
+[--->0
+]--->0
+|--->0
+\--->0
+:--->23
+;--->0
+"--->2
+'--->0
+,--->9
+<--->1
+>--->1
+.--->35
+?--->9
+/--->24
+0--->0
+1--->1
+2--->0
+3--->0
+4--->0
+5--->3
+6--->1
+7--->0
+8--->2
+9--->0
+
+
+             Emojis with frequency:
+:(--->2
+:)--->1
+:P--->1
+:p--->1
+:O--->0
+:3--->0
+:|--->0
+:/--->0
+:\--->0
+:$--->0
+:*--->0
+:@--->0
+:-(--->0
+:-)--->1
+:-P--->0
+:-p--->0
+:-O--->0
+:-3--->0
+:-|--->0
+:-/--->0
+:-\--->0
+:-$--->0
+:-*--->0
+:-@--->0
+:^(--->0
+:^)--->0
+:^P--->0
+:^p--->0
+:^O--->0
+:^3--->0
+:^|--->0
+:^/--->0
+:^\--->0
+:^$--->0
+:^*--->0
+:^@--->0
+):--->0
+(:--->0
+$:--->0
+*:--->0
+)-:--->0
+(-:--->0
+$-:--->0
+*-:--->0
+)^:--->0
+(^:--->0
+$^:--->0
+*^:--->0
+<3--->0
+</3--->0
+<\3--->0
+:D--->1
+;-)--->0
+;)--->0
+
+
+             Hash tag Collection with frequency:
+#bros_for_life--->1
+#hellyeah--->1
+#prayForGaza--->1
+#bar--->1
+
+
+             Mentions with frequency:
+@hazard--->1
+@punk_alif--->1
+
+
+             URLs with frequencies:
+http://www.foufos.gr--->1
+https://www.foufos.gr--->1
+http://foufos.gr--->1
+http://www.foufos.gr/kino--->1
+http://www.t.co--->1
+http://t.co--->1
+http://werer.gr--->1
+www.foufos.gr--->1
+www.foufos--->1
+http://www.foufos--->1
+http://foufos--->1
+http://www.test.com/dir/filename.jpg?var1=foo#bar.--->1
+
+
+             Di-grams frequencies:
+said jumped--->1
+jumped over--->1
+lazy dog--->2
+dog cat--->1
+over mouse--->1
+mouse p--->1
+p cat--->1
+cat dog--->1
+dog or--->1
+hello world--->1
+hii how--->1
+u doing--->1
+http www--->5
+gr https--->1
+https www--->1
+gr http--->2
+http foufos--->2
+gr kino--->1
+kino http--->1
+co http--->2
+http t--->1
+http werer--->1
+gr www--->2
+foufos http--->3
+com dir--->1
+dir filename--->1
+thank u--->1
+u bro--->1
+p d--->2
+d d--->1
+d pencil--->1
+
+
+             Tri-grams frequencies:
+said jumped over--->1
+lazy dog cat--->1
+over mouse p--->1
+mouse p cat--->1
+p cat dog--->1
+cat dog or--->1
+dog or mouse--->1
+hii how are--->1
+gr https www--->1
+gr http foufos--->1
+gr http www--->1
+gr kino http--->1
+kino http www--->1
+co http t--->1
+co http werer--->1
+foufos http www--->2
+foufos http foufos--->1
+http foufos http--->1
+com dir filename--->1
+thank u bro--->1
+p d d--->1
+d d pencil--->1
+
+
+             Total sentences in the post : 31
+             Total words in the post : 91
+             Number of Hashtags : 4
+             Number of Emojis : 7
+             Number of URLs : 12
+             Number of quotations : 1
+             Sentences starting with capital : 1
+             Total Upper case letters : 17
+             Lexical_diversity : 0.549451
