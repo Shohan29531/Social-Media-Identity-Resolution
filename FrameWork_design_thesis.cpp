@@ -7,17 +7,12 @@ using json = nlohmann::json;
 #define CASE 'a'
 #define MAX_WORD_SIZE 25
 
-//true for disqus
-//false for twitter
-bool disqus_twitter=true;
-
 //global json object to store the output which will be written to file later.
 json json_output;
 //Index for inserting dictionary words
 int dictionary_words=0;
 int start_with_capital=0;
 int upper_case_letters=0;
-int quotation_count=0;
 //The output file-stream, global because more than one method uses this to write
 //into the output file
 ofstream output;
@@ -39,7 +34,7 @@ vector<word_ext_and_freq> mentions;
 //URLs and their frequencies
 vector<word_ext_and_freq> all_urls;
 //Di-grams
-vector<word_ext_and_freq> bi_grams;
+vector<word_ext_and_freq> di_grams;
 //tri-grams
 vector<word_ext_and_freq> tri_grams;
 //tri-grams
@@ -56,33 +51,6 @@ vector<word_ext_and_freq> word_extensions;
 vector<word_ext_and_freq> vector_of_dictionary_words;
 
 //
-
-
-
-vector<special_and_freq> special_chars_temp;
-//Emojis, Currently loaded from input file
-//change and do using regex
-vector<word_ext_and_freq> emojis_temp;
-//All the hashtags and their frequencies
-vector<word_ext_and_freq> hashtags_temp;
-//Mention in twitter is detected only by a @ character
-vector<word_ext_and_freq> mentions_temp;
-//URLs and their frequencies
-vector<word_ext_and_freq> all_urls_temp;
-//Di-grams
-vector<word_ext_and_freq> bi_grams_temp;
-//tri-grams
-vector<word_ext_and_freq> tri_grams_temp;
-
-
-vector<word_ext_and_freq> all_capital_words_temp;
-vector<word_ext_and_freq> alphanumeric_words_temp;
-vector<word_ext_and_freq> numeric_words_temp;
-vector<word_ext_and_freq> word_extensions_temp;
-
-//
-
-vector<word_ext_and_freq> vector_of_dictionary_words_temp;
 
 
 class word_ext_and_freq
@@ -116,9 +84,7 @@ struct Node
 {
     struct Node * parent;
     struct Node * children[ALPHABETS];
-    //occurrences[0] to store occurrence in disqus
-    //occurrences[1] to store occurrences in twitter
-    vector<int> occurrences[2];
+    vector<int> occurrences;
 };
 
 // Inserts a word 'text' into the Trie Tree
@@ -139,10 +105,7 @@ void InsertWord(struct Node * trieTree, char * word, int index)
         traverse = traverse->children[*word - CASE];
         ++word; // The next alphabet
     }
-    //disqus
-    if(disqus_twitter==true) traverse->occurrences[0].push_back(index);      // Mark the occurence of the word
-    //twitter
-    else traverse->occurrences[1].push_back(index);
+    traverse->occurrences.push_back(index);      // Mark the occurence of the word
 }
 
 // Searches for the occurence of a word in 'trieTree',
@@ -165,34 +128,16 @@ struct Node * SearchWord(struct Node * treeNode, char * word)
             break;
         }
     }
-    if(disqus_twitter==true)
-    {
-        //disqus
 
-        if (*word == '\0' && treeNode->occurrences[0].size() != 0)
-        {
-            // Word found
-            return treeNode;
-        }
-        else
-        {
-            // Word not found
-            return NULL;
-        }
+    if (*word == '\0' && treeNode->occurrences.size() != 0)
+    {
+        // Word found
+        return treeNode;
     }
     else
     {
-        //twitter
-        if (*word == '\0' && treeNode->occurrences[1].size() != 0)
-        {
-            // Word found
-            return treeNode;
-        }
-        else
-        {
-            // Word not found
-            return NULL;
-        }
+        // Word not found
+        return NULL;
     }
 }
 
@@ -207,8 +152,7 @@ void RemoveWord(struct Node * trieTree, char * word)
         // Word not found
         return;
     }
-    if(disqus_twitter) trieNode->occurrences[0].pop_back();    // Deleting the occurence
-    else trieNode->occurrences[1].pop_back();
+    trieNode->occurrences.pop_back();    // Deleting the occurence
 
     // 'noChild' indicates if the node is a leaf node
     bool noChild = true;
@@ -239,72 +183,34 @@ void RemoveWord(struct Node * trieTree, char * word)
 
     struct Node * parentNode;     // variable to assist in traversal
 
-    if(disqus_twitter)
+    while (trieNode->occurrences.size() == 0 && trieNode->parent != NULL && childCount == 0)
     {
-        while (trieNode->occurrences[0].size() == 0 && trieNode->parent != NULL && childCount == 0)
+        // trieNode->occurrences.size() -> tells if the node is associated with another word
+        //
+        // trieNode->parent != NULL -> is the base case sort-of condition, we simply ran
+        // out of nodes to be deleted, as we reached the root
+        //
+        // childCount -> does the same thing as explained in the beginning, to every node
+        // we reach
+
+        childCount = 0;
+        parentNode = trieNode->parent;
+
+        for (i = 0; i < ALPHABETS; ++i)
         {
-            // trieNode->occurrences.size() -> tells if the node is associated with another word
-            //
-            // trieNode->parent != NULL -> is the base case sort-of condition, we simply ran
-            // out of nodes to be deleted, as we reached the root
-            //
-            // childCount -> does the same thing as explained in the beginning, to every node
-            // we reach
-
-            childCount = 0;
-            parentNode = trieNode->parent;
-
-            for (i = 0; i < ALPHABETS; ++i)
+            if (parentNode->children[i] != NULL)
             {
-                if (parentNode->children[i] != NULL)
+                if (trieNode == parentNode->children[i])
                 {
-                    if (trieNode == parentNode->children[i])
-                    {
-                        // the child node from which we reached
-                        // the parent, this is to be deleted
-                        parentNode->children[i] = NULL;
-                        free(trieNode);
-                        trieNode = parentNode;
-                    }
-                    else
-                    {
-                        ++childCount;
-                    }
+                    // the child node from which we reached
+                    // the parent, this is to be deleted
+                    parentNode->children[i] = NULL;
+                    free(trieNode);
+                    trieNode = parentNode;
                 }
-            }
-        }
-    }
-    else
-    {
-        while (trieNode->occurrences[1].size() == 0 && trieNode->parent != NULL && childCount == 0)
-        {
-            // trieNode->occurrences.size() -> tells if the node is associated with another word
-            //
-            // trieNode->parent != NULL -> is the base case sort-of condition, we simply ran
-            // out of nodes to be deleted, as we reached the root
-            //
-            // childCount -> does the same thing as explained in the beginning, to every node
-            // we reach
-
-            childCount = 0;
-            parentNode = trieNode->parent;
-
-            for (i = 0; i < ALPHABETS; ++i)
-            {
-                if (parentNode->children[i] != NULL)
+                else
                 {
-                    if (trieNode == parentNode->children[i])
-                    {
-                        // the child node from which we reached
-                        // the parent, this is to be deleted
-                        parentNode->children[i] = NULL;
-                        free(trieNode);
-                        trieNode = parentNode;
-                    }
-                    else
-                    {
-                        ++childCount;
-                    }
+                    ++childCount;
                 }
             }
         }
@@ -318,66 +224,32 @@ void LexicographicalPrint(struct Node * trieTree, vector<char> word,int &_unique
     int i;
     bool noChild = true;
 
-    if(disqus_twitter)
+    if (trieTree->occurrences.size() != 0)
     {
-        if (trieTree->occurrences[0].size() != 0)
+        // Condition trie_tree->occurrences.size() != 0,
+        // is a neccessary and sufficient condition to
+        // tell if a node is associated with a word or not
+
+        if(trieTree->occurrences.size() >= 2)
         {
-            // Condition trie_tree->occurrences.size() != 0,
-            // is a neccessary and sufficient condition to
-            // tell if a node is associated with a word or not
+            _unique++;
 
-            if(trieTree->occurrences[0].size() >= 2)
+            string str="";
+            vector<char>::iterator charItr = word.begin();
+            while (charItr != word.end())
             {
-                _unique++;
+                printf("%c", *charItr);
+                output<<*charItr;
+                str+=*charItr;
+                ++charItr;
 
-                string str="";
-                vector<char>::iterator charItr = word.begin();
-                while (charItr != word.end())
-                {
-                    printf("%c", *charItr);
-                    output<<*charItr;
-                    str+=*charItr;
-                    ++charItr;
-
-                }
-                word_ext_and_freq* temporary= new word_ext_and_freq(str,trieTree->occurrences[0].size()-1);
-                vector_of_dictionary_words.push_back(*temporary);
-
-                total+=(trieTree->occurrences[0].size()-1);
-                cout<<"-->"<<trieTree->occurrences[0].size()-1<<endl;
-                output<<"-->"<<trieTree->occurrences[0].size()-1<<endl;
             }
-        }
-    }
-    else
-    {
-        if (trieTree->occurrences[1].size() != 0)
-        {
-            // Condition trie_tree->occurrences.size() != 0,
-            // is a neccessary and sufficient condition to
-            // tell if a node is associated with a word or not
+            word_ext_and_freq* temporary= new word_ext_and_freq(str,0);
+            vector_of_dictionary_words.push_back(*temporary);
 
-            if(trieTree->occurrences[1].size() >= 2)
-            {
-                _unique++;
-
-                string str="";
-                vector<char>::iterator charItr = word.begin();
-                while (charItr != word.end())
-                {
-                    printf("%c", *charItr);
-                    output<<*charItr;
-                    str+=*charItr;
-                    ++charItr;
-
-                }
-                word_ext_and_freq* temporary= new word_ext_and_freq(str,trieTree->occurrences[1].size()-1);
-                vector_of_dictionary_words.push_back(*temporary);
-
-                total+=(trieTree->occurrences[1].size()-1);
-                cout<<"-->"<<trieTree->occurrences[1].size()-1<<endl;
-                output<<"-->"<<trieTree->occurrences[1].size()-1<<endl;
-            }
+            total+=(trieTree->occurrences.size()-1);
+            cout<<"-->"<<trieTree->occurrences.size()-1<<endl;
+            output<<"-->"<<trieTree->occurrences.size()-1<<endl;
         }
     }
 
@@ -609,7 +481,6 @@ bool valid_character(char c)
 {
     if(!((c>='A' && c<='Z' )||(c>='a' && c<='z')||(c>='0' && c<='9')))
     {
-        if(c==' ') return true;
         for(int k=0; k<special_chars.size(); k++)
         {
             if(c==special_chars[k].special)
@@ -617,25 +488,13 @@ bool valid_character(char c)
                 return true;
             }
         }
+        if(c==' ') return true;
         return false;
     }
     else
     {
         return true;
     }
-}
-
-
-
-bool valid_word(string s)
-{
-
-    for(int i=0; i<s.size(); i++)
-    {
-        if(!valid_character(s[i])) return false;
-
-    }
-    return true;
 }
 // Analyze a post by counting the number of sentences in it
 // number of upper case letters
@@ -653,7 +512,6 @@ vector<string> Sentences_in_a_post(string s)
                 break;
             }
         }
-        if(s[i]=='"') quotation_count++;
         if(s[i]>='A' && s[i]<='Z') upper_case_letters++;
     }
     vector<string> sentences;
@@ -745,7 +603,7 @@ bool numeric_test(string s)
 }
 
 //count quotations
-/*int quotation_count(string s)
+int quotation_count(string s)
 {
     regex word_regex("\"([^\"]*)\"");
     auto words_begin = sregex_iterator(s.begin(), s.end(), word_regex);
@@ -760,7 +618,7 @@ bool numeric_test(string s)
         count++;
     }
     return count;
-}*/
+}
 
 //Alphanumeric character detection
 bool Alphanumeric_test(string s)
@@ -801,7 +659,6 @@ void Complete_word_analysis(string s,Node * trieTree)
 {
     vector<string> sentences = Sentences_in_a_post(s);
     int total_words=0;
-    //cout<<"hello"<<endl;
     int first_letter_capital=0;
     //URL analysis
     int urls=number_of_urls(s);
@@ -809,10 +666,6 @@ void Complete_word_analysis(string s,Node * trieTree)
     for(int i=0; i<sentences.size(); i++)
     {
         int punc;
-
-        cout<<i<<endl;
-
-        //if(i==500) break;
 
         vector<string> words = Words_in_a_sentence(sentences[i],punc);
         //cout<<endl;
@@ -828,10 +681,6 @@ void Complete_word_analysis(string s,Node * trieTree)
         //cout<<words.size()<<endl;
         for(int j=0; j<words.size(); j++)
         {
-            //cout<<dictionary_words<<endl;
-
-            //if(!valid_word(words[j])) continue;
-
             if(is_stop_word(words[j])) continue;
             //numeric test
             if(numeric_test(words[j]))
@@ -986,18 +835,18 @@ void Complete_word_analysis(string s,Node * trieTree)
                     temp+=All_lower_case(words[j+1]);
                     bool found=false;
                     //cout<<temp<<endl;
-                    for(int x=0; x<bi_grams.size(); x++)
+                    for(int x=0; x<di_grams.size(); x++)
                     {
-                        if(bi_grams[x].word_ext==temp)
+                        if(di_grams[x].word_ext==temp)
                         {
-                            bi_grams[x].freq++;
+                            di_grams[x].freq++;
                             found=true;
                         }
                     }
                     if(!found)
                     {
                         word_ext_and_freq *t = new word_ext_and_freq(temp,1);
-                        bi_grams.push_back(*t);
+                        di_grams.push_back(*t);
                     }
                 }
             }
@@ -1052,8 +901,6 @@ void Complete_word_analysis(string s,Node * trieTree)
         }
     }
 
-
-
     // wrong currently, correct this
     // add all the unique ones
     //double lexical_diversity= (double)(dictionary_words.size()+we)/total_words;
@@ -1063,10 +910,7 @@ void Complete_word_analysis(string s,Node * trieTree)
 
     int _unique=0;
     int total=0;
-
-    int q=quotation_count/2;
-
-
+    int q=quotation_count(s);
 
     //Job done, now print everything
     vector<char> printUtil;
@@ -1103,6 +947,7 @@ void Complete_word_analysis(string s,Node * trieTree)
     //
     double Lexical_diversity=(double)_unique/(double)total;
 
+
     cout<<"             All Capital Words with frequency:"<<endl;
     output<<"             All Capital Words with frequency:"<<endl;
     print(all_capital_words);
@@ -1130,9 +975,9 @@ void Complete_word_analysis(string s,Node * trieTree)
     cout<<"             URLs with frequencies:"<<endl;
     output<<"             URLs with frequencies:"<<endl;
     print(all_urls);
-    cout<<"             bi-grams frequencies:"<<endl;
-    output<<"             bi-grams frequencies:"<<endl;
-    print(bi_grams);
+    cout<<"             Di-grams frequencies:"<<endl;
+    output<<"             Di-grams frequencies:"<<endl;
+    print(di_grams);
     cout<<"             Tri-grams frequencies:"<<endl;
     output<<"             Tri-grams frequencies:"<<endl;
     print(tri_grams);
@@ -1157,7 +1002,7 @@ void Complete_word_analysis(string s,Node * trieTree)
     cout<<"             Lexical_diversity : "<<Lexical_diversity<<endl;
     output<<"             Lexical_diversity : "<<Lexical_diversity<<endl;
 
-    cout<<total<<"  "<<_unique<<endl;
+    //cout<<total<<"  "<<_unique<<endl;
 }
 
 //Print function-1
@@ -1346,12 +1191,8 @@ void Run_using_string_output_as_json(string input_string, string output_file)
     //All emojis in a file
     ifstream file3("emojis.txt");
     ifstream file4;
-    if(disqus_twitter)
-    {
-
-        //All dictionary words in a file
-        file4.open("words3.txt");
-    }
+    //All dictionary words in a file
+    file4.open("words3.txt");
 
     string line3;
     string line2;
@@ -1394,8 +1235,7 @@ void Run_using_string_output_as_json(string input_string, string output_file)
         }
     }
     //trie data structure for storing the dictionary
-
-    struct Node *trieTree = (struct Node *) calloc(1, sizeof(struct Node));
+    struct Node * trieTree = (struct Node *) calloc(1, sizeof(struct Node));
     string w;
 
     //Load the dictionary from the file
@@ -1406,7 +1246,6 @@ void Run_using_string_output_as_json(string input_string, string output_file)
         if(SearchWord(trieTree,(char*)w.c_str())==NULL) InsertWord(trieTree,(char*)w.c_str(), dictionary_words++);
     }
 
-
     output.open(output_file);
     Complete_word_analysis(input_string,trieTree);
     file2.close();
@@ -1416,45 +1255,10 @@ void Run_using_string_output_as_json(string input_string, string output_file)
     output.close();
 }
 
-void reset_and_save()
+void Run_simulation_from_json_file(string input_file, string output_file)
 {
-    special_chars_temp=special_chars;
-    emojis_temp=emojis;
-    hashtags_temp=hashtags;
-    mentions_temp=mentions;
-    all_urls_temp=all_urls;
-    bi_grams_temp=bi_grams;
-    tri_grams_temp=tri_grams;
-    all_capital_words_temp=all_capital_words;
-    alphanumeric_words_temp=alphanumeric_words;
-    numeric_words_temp=numeric_words;
-    word_extensions_temp=word_extensions;
-    vector_of_dictionary_words_temp=vector_of_dictionary_words;
-
-    special_chars.clear();
-    emojis.clear();
-    hashtags.clear();
-    mentions.clear();
-
-    all_urls.clear();
-    bi_grams.clear();
-    tri_grams.clear();
-    all_capital_words.clear();
-
-    alphanumeric_words.clear();
-    numeric_words.clear();
-    word_extensions.clear();
-    vector_of_dictionary_words.clear();
-
-}
-
-
-void Run_simulation_from_json_file_for_disqus(string input_file, string output_file)
-{
-    disqus_twitter=true;
     json p;
     ifstream disqus_comments(input_file);
-    ofstream nigga("temp2.txt");
     disqus_comments>>p;
     string s="";
 
@@ -1464,29 +1268,13 @@ void Run_simulation_from_json_file_for_disqus(string input_file, string output_f
         s+=p["comments"][i]["post"];
     }
     s+=".";
-    nigga<<s<<endl;
     disqus_comments.close();
     Run_using_string_output_as_json(s,output_file);
 }
 
-
-void Run_simulation_from_json_file_for_twitter(string input_file, string output_file)
+int main()
 {
-    reset_and_save();
-    disqus_twitter=false;
-    json p;
-    ifstream tweets(input_file);
-    ofstream nigga("temp.txt");
-    tweets>>p;
-    string s="";
-
-    for(int i=0; i<p.size(); i++)
-    {
-        s+=".";
-        s+=p[i]["text"];
-    }
-    s+=".";
-    nigga<<s<<endl;
-    tweets.close();
-    Run_using_string_output_as_json(s,output_file);
+    Run_simulation_from_json_file("json_input/temp.json","json_output/test_output_temp.txt");
 }
+
+
