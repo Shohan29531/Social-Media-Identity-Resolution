@@ -37,13 +37,13 @@ While neither temporal nor non-temporal methods proved definitively superior, ou
    - Adjusting weights and refining reward mechanisms for better accuracy and ranking performance.
 
 ## Citation
-
-<pre>
 If you use this work, please cite as:
+
+<pre>  
 @article{islam2024temporal,
   title={A Temporal Psycholinguistics Approach to Identity Resolution of Social Media Users},
   author={Islam, Md Touhidul},
   journal={arXiv preprint arXiv:2407.19967},
   year={2024}
 }
-<\pre>
+</pre>
