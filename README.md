@@ -38,6 +38,7 @@ While neither temporal nor non-temporal methods proved definitively superior, ou
 
 ## Citation
 
+<pre>
 If you use this work, please cite as:
 @article{islam2024temporal,
   title={A Temporal Psycholinguistics Approach to Identity Resolution of Social Media Users},
@@ -45,3 +46,4 @@ If you use this work, please cite as:
   journal={arXiv preprint arXiv:2407.19967},
   year={2024}
 }
+<\pre>
